@@ -84,7 +84,9 @@ class Task extends HiveObject {
       priority: json['priority'] ?? 2,
       color: json['color'],
       dueDate: json['dueDate'] != null ? DateTime.parse(json['dueDate']) : null,
-      reminderTime: json['reminderTime'] != null ? DateTime.parse(json['reminderTime']) : null,
+      reminderTime: json['reminderTime'] != null
+          ? DateTime.parse(json['reminderTime'])
+          : null,
     );
   }
 }

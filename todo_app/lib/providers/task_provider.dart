@@ -17,8 +17,9 @@ class TaskProvider extends ChangeNotifier {
 
     // Filter by category
     if (_filterCategory != 'All') {
-      filteredTasks =
-          filteredTasks.where((task) => task.category == _filterCategory).toList();
+      filteredTasks = filteredTasks
+          .where((task) => task.category == _filterCategory)
+          .toList();
     }
 
     // Filter completed tasks
@@ -32,7 +33,9 @@ class TaskProvider extends ChangeNotifier {
         filteredTasks.sort((a, b) => b.priority.compareTo(a.priority));
         break;
       case 2: // By Due Date
-        filteredTasks = filteredTasks.where((task) => task.dueDate != null).toList();
+        filteredTasks = filteredTasks
+            .where((task) => task.dueDate != null)
+            .toList();
         filteredTasks.sort((a, b) => a.dueDate!.compareTo(b.dueDate!));
         break;
       default:
@@ -58,31 +61,31 @@ class TaskProvider extends ChangeNotifier {
   Future<void> addTask(Task task) async {
     await _hiveService.saveTask(task);
     _tasks.add(task);
-    
+
     // Schedule notification if reminder time is set
     if (task.reminderTime != null) {
       await _notificationService.scheduleNotification(task: task);
     }
-    
+
     notifyListeners();
   }
 
   // Update an existing task
   Future<void> updateTask(Task task) async {
     await _hiveService.updateTask(task);
-    
+
     final index = _tasks.indexWhere((t) => t.id == task.id);
     if (index != -1) {
       _tasks[index] = task;
     }
-    
+
     // Reschedule notification
     if (task.reminderTime != null) {
       await _notificationService.rescheduleNotification(task);
     } else {
       await _notificationService.cancelNotification(task.id);
     }
-    
+
     notifyListeners();
   }
 
@@ -90,10 +93,10 @@ class TaskProvider extends ChangeNotifier {
   Future<void> deleteTask(String taskId) async {
     await _hiveService.deleteTask(taskId);
     _tasks.removeWhere((task) => task.id == taskId);
-    
+
     // Cancel notification
     await _notificationService.cancelNotification(taskId);
-    
+
     notifyListeners();
   }
 
@@ -170,7 +173,7 @@ class TaskProvider extends ChangeNotifier {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final tomorrow = today.add(const Duration(days: 1));
-    
+
     return _tasks.where((task) {
       return task.dueDate != null &&
           task.dueDate!.isAfter(today) &&
@@ -182,7 +185,7 @@ class TaskProvider extends ChangeNotifier {
   List<Task> get upcomingTasks {
     final now = DateTime.now();
     final nextWeek = now.add(const Duration(days: 7));
-    
+
     return _tasks.where((task) {
       return task.dueDate != null &&
           task.dueDate!.isAfter(now) &&

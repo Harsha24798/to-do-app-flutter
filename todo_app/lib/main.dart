@@ -7,13 +7,13 @@ import 'screens/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize Hive
   await HiveService.initHive();
-  
+
   // Initialize notifications
   await NotificationService().initNotification();
-  
+
   runApp(const MyApp());
 }
 
@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final hiveService = HiveService();
     final darkMode = hiveService.getSetting('dark_mode', defaultValue: false);
-    
+
     return ChangeNotifierProvider(
       create: (context) => TaskProvider()..loadTasks(),
       child: MaterialApp(

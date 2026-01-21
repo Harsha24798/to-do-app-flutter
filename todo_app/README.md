@@ -5,12 +5,14 @@ A fully-featured To-Do application built with Flutter, featuring local storage, 
 ## Features
 
 ✅ **Task Management**
+
 - Create, read, update, and delete tasks
 - Mark tasks as complete/incomplete
 - Swipe to delete with undo option
 - Tap to edit tasks
 
 ✅ **Task Organization**
+
 - Categorize tasks (Work, Personal, Shopping, etc.)
 - Set priority levels (Low, Medium, High)
 - Assign custom colors to tasks
@@ -19,12 +21,14 @@ A fully-featured To-Do application built with Flutter, featuring local storage, 
 - Toggle visibility of completed tasks
 
 ✅ **Reminders & Notifications**
+
 - Set due dates with time
 - Schedule reminder notifications
 - Local notifications support
 - Notification permissions handling
 
 ✅ **Settings & Preferences**
+
 - Light/Dark theme support
 - Enable/disable notifications
 - Configure default reminder time
@@ -32,6 +36,7 @@ A fully-featured To-Do application built with Flutter, featuring local storage, 
 - Clear all tasks
 
 ✅ **Data Persistence**
+
 - Local storage using Hive
 - Fast and efficient data access
 - Settings persistence
@@ -73,6 +78,7 @@ lib/
 ### Steps to Run
 
 1. **Get dependencies**
+
    ```bash
    flutter pub get
    ```
@@ -83,18 +89,20 @@ lib/
    - This is required for symlink support with plugins
 
 3. **Check available devices**
+
    ```bash
    flutter devices
    ```
 
 4. **Run the app**
+
    ```bash
    # For Windows
    flutter run -d windows
-   
+
    # For Web
    flutter run -d chrome
-   
+
    # For Android (requires device/emulator)
    flutter run -d android
    ```
@@ -131,6 +139,7 @@ lib/
 ### Settings
 
 Access settings via the settings icon:
+
 - Toggle dark mode (requires app restart)
 - Enable/disable notifications
 - Set default reminder time (5min to 1 day)
@@ -149,20 +158,25 @@ Per [.agent/10_final_check.md](.agent/10_final_check.md):
 ## Troubleshooting
 
 **Issue**: "Building with plugins requires symlink support"
+
 - **Solution**: Enable Developer Mode on Windows (`start ms-settings:developers`)
 
 **Issue**: Notifications not appearing
+
 - **Solution**: Check notification permissions in device settings
 
 **Issue**: Tasks not saving
+
 - **Solution**: Ensure Hive is initialized properly in main.dart
 
 **Issue**: Build errors
+
 - **Solution**: Run `flutter clean` then `flutter pub get`
 
 ## Dependencies
 
 All dependencies are managed in `pubspec.yaml`:
+
 - hive & hive_flutter (local storage)
 - provider (state management)
 - flutter_local_notifications (reminders)
@@ -172,6 +186,7 @@ All dependencies are managed in `pubspec.yaml`:
 ## Version
 
 **v1.0.0** (2026-01-21)
+
 - Initial release with full CRUD functionality
 - Local notifications and reminders
 - Settings management with theme support
