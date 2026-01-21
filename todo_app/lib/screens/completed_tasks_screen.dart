@@ -480,43 +480,6 @@ class _CompletedTasksScreenState extends State<CompletedTasksScreen> {
                         ),
                       )
                     : null,
-                trailing: IconButton(
-                  icon: const Icon(Icons.refresh),
-                  tooltip: 'Mark as incomplete',
-                  onPressed: () async {
-                    _confettiController.play();
-                    taskProvider.toggleComplete(task.id);
-
-                    await Future.delayed(const Duration(milliseconds: 300));
-
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: const Text('Task marked as incomplete'),
-                          duration: const Duration(seconds: 3),
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          action: SnackBarAction(
-                            label: 'Undo',
-                            onPressed: () {
-                              taskProvider.toggleComplete(task.id);
-                            },
-                          ),
-                        ),
-                      );
-                    }
-                  },
-                ),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => AddTaskScreen(task: task),
-                    ),
-                  );
-                },
               ),
             ],
           ),
