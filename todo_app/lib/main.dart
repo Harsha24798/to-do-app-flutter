@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'services/hive_service.dart';
 import 'services/notification_service.dart';
 import 'providers/task_provider.dart';
-import 'screens/home_screen.dart';
+import 'screens/dashboard_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -57,7 +57,7 @@ class MyApp extends StatelessWidget {
           ),
         ),
         themeMode: darkMode ? ThemeMode.dark : ThemeMode.light,
-        home: const HomeScreen(),
+        home: const DashboardScreen(),
       ),
     );
   }

@@ -21,6 +21,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   DateTime? _dueDate;
   DateTime? _reminderTime;
   int? _selectedColor;
+  String? _selectedEmoji;
 
   final List<Color> _colors = [
     Colors.red,
@@ -41,6 +42,33 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     Colors.deepOrange,
   ];
 
+  final List<String> _emojis = [
+    '📝',
+    '💼',
+    '🏠',
+    '🛒',
+    '🎯',
+    '📚',
+    '💡',
+    '🎨',
+    '🏃',
+    '💪',
+    '🍎',
+    '☕',
+    '✈️',
+    '🎵',
+    '📱',
+    '💻',
+    '🎮',
+    '🏆',
+    '🎁',
+    '💰',
+    '🔔',
+    '⭐',
+    '🎉',
+    '🔥',
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -54,6 +82,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
       _dueDate = widget.task!.dueDate;
       _reminderTime = widget.task!.reminderTime;
       _selectedColor = widget.task!.color;
+      _selectedEmoji = widget.task!.emoji;
     }
   }
 
@@ -238,6 +267,48 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
             ),
             const SizedBox(height: 24),
 
+            // Emoji picker
+            const Text(
+              'Task Emoji',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: _emojis.map((emoji) {
+                final isSelected = _selectedEmoji == emoji;
+
+                return GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _selectedEmoji = emoji;
+                    });
+                  },
+                  child: Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? colorScheme.primaryContainer
+                          : Colors.grey[200],
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: isSelected
+                            ? colorScheme.primary
+                            : Colors.transparent,
+                        width: 3,
+                      ),
+                    ),
+                    child: Center(
+                      child: Text(emoji, style: const TextStyle(fontSize: 24)),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 24),
+
             // Color picker
             const Text(
               'Task Color',
@@ -367,6 +438,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
         dueDate: _dueDate,
         reminderTime: _reminderTime,
         color: _selectedColor,
+        emoji: _selectedEmoji,
         completed: widget.task?.completed ?? false,
       );
 

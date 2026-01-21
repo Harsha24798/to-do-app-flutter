@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:confetti/confetti.dart';
+import 'package:intl/intl.dart';
 import 'dart:math';
 import '../providers/task_provider.dart';
 import '../models/task.dart';
@@ -74,25 +75,25 @@ class _HomeScreenState extends State<HomeScreen> {
             elevation: 0,
             actions: [
               // Completed tasks button
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 4),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: IconButton(
-                  icon: const Icon(Icons.check_circle),
-                  tooltip: 'Completed Tasks',
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const CompletedTasksScreen(),
-                      ),
-                    );
-                  },
-                ),
-              ),
+              // Container(
+              //   margin: const EdgeInsets.symmetric(horizontal: 4),
+              //   decoration: BoxDecoration(
+              //     color: Colors.white.withOpacity(0.2),
+              //     borderRadius: BorderRadius.circular(12),
+              //   ),
+              //   child: IconButton(
+              //     icon: const Icon(Icons.check_circle),
+              //     tooltip: 'Completed Tasks',
+              //     onPressed: () {
+              //       Navigator.push(
+              //         context,
+              //         MaterialPageRoute(
+              //           builder: (context) => const CompletedTasksScreen(),
+              //         ),
+              //       );
+              //     },
+              //   ),
+              // ),
               // Filter menu
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -188,21 +189,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   // Task statistics
                   _buildStatistics(taskProvider),
-                  // Task list
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: tasks.length,
-                      itemBuilder: (context, index) {
-                        final task = tasks[index];
-                        return _buildTaskItem(
-                          context,
-                          task,
-                          taskProvider,
-                          index,
-                        );
-                      },
-                    ),
-                  ),
+                  // Task list grouped by date
+                  Expanded(child: _buildGroupedTaskList(tasks)),
                 ],
               );
             },
@@ -241,6 +229,213 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Map<String, Map<String, List<Task>>> _groupTasksByMonthAndDate(
+    List<Task> tasks,
+  ) {
+    final Map<String, Map<String, List<Task>>> grouped = {};
+
+    for (var task in tasks) {
+      final date = task.dueDate ?? DateTime.now();
+      final monthKey = DateFormat(
+        'MMMM yyyy',
+      ).format(date); // e.g., "January 2026"
+      final dateKey = DateFormat(
+        'EEEE, MMM dd',
+      ).format(date); // e.g., "Tuesday, Jan 21"
+
+      if (!grouped.containsKey(monthKey)) {
+        grouped[monthKey] = {};
+      }
+
+      if (!grouped[monthKey]!.containsKey(dateKey)) {
+        grouped[monthKey]![dateKey] = [];
+      }
+
+      grouped[monthKey]![dateKey]!.add(task);
+    }
+
+    return grouped;
+  }
+
+  Widget _buildGroupedTaskList(List<Task> tasks) {
+    final groupedTasks = _groupTasksByMonthAndDate(tasks);
+    final colorScheme = Theme.of(context).colorScheme;
+
+    if (groupedTasks.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      itemCount: groupedTasks.length,
+      itemBuilder: (context, monthIndex) {
+        final monthKey = groupedTasks.keys.elementAt(monthIndex);
+        final datesInMonth = groupedTasks[monthKey]!;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Month Header
+            Container(
+                  margin: const EdgeInsets.symmetric(
+                    vertical: 8,
+                    horizontal: 4,
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 12,
+                    horizontal: 16,
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [colorScheme.primary, colorScheme.secondary],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: colorScheme.primary.withOpacity(0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.calendar_month, color: Colors.white, size: 24),
+                      const SizedBox(width: 12),
+                      Text(
+                        monthKey,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const Spacer(),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '${datesInMonth.values.fold(0, (sum, list) => sum + list.length)} tasks',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+                .animate()
+                .fadeIn(delay: (monthIndex * 100).ms)
+                .slideX(begin: -0.2, duration: 300.ms),
+
+            // Dates and Tasks
+            ...datesInMonth.entries.map((dateEntry) {
+              final dateKey = dateEntry.key;
+              final tasksForDate = dateEntry.value;
+              final dateIndex = datesInMonth.keys.toList().indexOf(dateKey);
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Date Header
+                  Container(
+                        margin: const EdgeInsets.only(
+                          left: 16,
+                          right: 16,
+                          top: 12,
+                          bottom: 8,
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: 14,
+                        ),
+                        decoration: BoxDecoration(
+                          color: colorScheme.primaryContainer,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: colorScheme.primary.withOpacity(0.3),
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.today,
+                              color: colorScheme.primary,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 10),
+                            Text(
+                              dateKey,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: colorScheme.primary,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: colorScheme.primary.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                '${tasksForDate.length}',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.primary,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                      .animate()
+                      .fadeIn(delay: (dateIndex * 80).ms)
+                      .slideX(begin: -0.1, duration: 250.ms),
+
+                  // Tasks for this date
+                  ...tasksForDate.asMap().entries.map((taskEntry) {
+                    final taskIndex = taskEntry.key;
+                    final task = taskEntry.value;
+                    return Padding(
+                      padding: const EdgeInsets.only(left: 8),
+                      child: _buildTaskItem(
+                        context,
+                        task,
+                        context.read<TaskProvider>(),
+                        taskIndex,
+                      ),
+                    );
+                  }),
+
+                  const SizedBox(height: 8),
+                ],
+              );
+            }),
+
+            const SizedBox(height: 16),
+          ],
+        );
+      },
     );
   }
 
@@ -357,48 +552,54 @@ class _HomeScreenState extends State<HomeScreen> {
               // Left swipe - delete
               return true;
             } else if (direction == DismissDirection.startToEnd) {
-              // Right swipe - complete
-              if (!task.completed) {
-                // Task was just marked complete, show confetti
-                _confettiController.play();
+              // Right swipe - complete/incomplete toggle
+              final wasCompleted = task.completed;
 
-                // Wait for confetti animation
-                await Future.delayed(const Duration(milliseconds: 500));
+              if (!wasCompleted) {
+                // Task will be marked complete, show confetti
+                _confettiController.play();
               }
 
               taskProvider.toggleComplete(task.id);
 
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Row(
-                    children: [
-                      Icon(
-                        task.completed ? Icons.refresh : Icons.celebration,
-                        color: Colors.white,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        task.completed
-                            ? 'Task marked as incomplete'
-                            : 'Task completed! 🎉',
-                      ),
-                    ],
+              // Wait a moment for confetti
+              if (!wasCompleted) {
+                await Future.delayed(const Duration(milliseconds: 300));
+              }
+
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Row(
+                      children: [
+                        Icon(
+                          wasCompleted ? Icons.refresh : Icons.celebration,
+                          color: Colors.white,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          wasCompleted
+                              ? 'Task marked as incomplete'
+                              : 'Task completed! 🎉',
+                        ),
+                      ],
+                    ),
+                    backgroundColor: wasCompleted ? Colors.blue : Colors.green,
+                    duration: const Duration(seconds: 3),
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    action: SnackBarAction(
+                      label: 'Undo',
+                      textColor: Colors.white,
+                      onPressed: () {
+                        taskProvider.toggleComplete(task.id);
+                      },
+                    ),
                   ),
-                  backgroundColor: task.completed ? Colors.blue : Colors.green,
-                  duration: const Duration(seconds: 2),
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  action: SnackBarAction(
-                    label: 'Undo',
-                    textColor: Colors.white,
-                    onPressed: () {
-                      taskProvider.toggleComplete(task.id);
-                    },
-                  ),
-                ),
-              );
+                );
+              }
               return false; // Don't remove from list
             }
             return false;
@@ -467,145 +668,181 @@ class _HomeScreenState extends State<HomeScreen> {
               );
             }
           },
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 500),
-            curve: Curves.easeInOut,
-            transform: task.completed
-                ? (Matrix4.identity()
-                    ..scale(0.95)
-                    ..rotateZ(-0.02))
-                : Matrix4.identity(),
-            child: Card(
-              margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              elevation: task.completed ? 1 : 3,
-              color: task.completed
-                  ? Colors.green.withOpacity(0.1)
-                  : taskColor.withOpacity(0.15),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-                side: BorderSide(
-                  color: task.completed
-                      ? Colors.green.withOpacity(0.5)
-                      : taskColor.withOpacity(0.6),
-                  width: task.completed ? 3 : 2,
-                ),
+          child: Card(
+            margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            elevation: task.completed ? 1 : 3,
+            color: task.completed
+                ? Colors.green.withOpacity(0.1)
+                : taskColor.withOpacity(0.35),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(
+                color: task.completed
+                    ? Colors.lightGreen.shade300
+                    : Colors.orange.shade300,
+                width: task.completed ? 3 : 2,
               ),
-              child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 500),
-                opacity: task.completed ? 0.6 : 1.0,
-                child: ListTile(
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  leading: AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
+            ),
+            child: Stack(
+              children: [
+                // Status Badge
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: task.completed
-                          ? Colors.green.withOpacity(0.3)
-                          : taskColor.withOpacity(0.3),
-                      shape: BoxShape.circle,
+                          ? Colors.green.shade100
+                          : Colors.orange.shade100,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: task.completed
+                            ? Colors.green.shade700
+                            : Colors.orange.shade700,
+                        width: 1,
+                      ),
                     ),
-                    child: Checkbox(
-                      value: task.completed,
-                      onChanged: (value) async {
-                        if (value == true) {
+                    child: Text(
+                      task.completed ? 'Complete' : 'Pending',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: task.completed
+                            ? Colors.green.shade700
+                            : Colors.orange.shade700,
+                      ),
+                    ),
+                  ),
+                ),
+                AnimatedOpacity(
+                  duration: const Duration(milliseconds: 500),
+                  opacity: task.completed ? 0.6 : 1.0,
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    leading: GestureDetector(
+                      onTap: () async {
+                        final wasCompleted = task.completed;
+
+                        if (!wasCompleted) {
                           _confettiController.play();
+                        }
+
+                        taskProvider.toggleComplete(task.id);
+
+                        // Wait a moment for confetti
+                        if (!wasCompleted) {
                           await Future.delayed(
-                            const Duration(milliseconds: 500),
+                            const Duration(milliseconds: 300),
                           );
                         }
-                        taskProvider.toggleComplete(task.id);
                       },
-                      fillColor: WidgetStateProperty.resolveWith((states) {
-                        if (states.contains(WidgetState.selected)) {
-                          return Colors.green;
-                        }
-                        return null;
-                      }),
-                    ),
-                  ),
-                  title: AnimatedDefaultTextStyle(
-                    duration: const Duration(milliseconds: 500),
-                    style: TextStyle(
-                      decoration: task.completed
-                          ? TextDecoration.lineThrough
-                          : TextDecoration.none,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                      color: task.completed
-                          ? Colors.green.shade700
-                          : colorScheme.onSurface,
-                      decorationColor: Colors.green,
-                      decorationThickness: 2,
-                    ),
-                    child: Text(task.title),
-                  ),
-                  subtitle: Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Wrap(
-                      spacing: 8,
-                      runSpacing: 4,
-                      children: [
-                        if (task.category != null)
-                          Chip(
-                            label: Text(task.category!),
-                            avatar: const Icon(Icons.label, size: 14),
-                            visualDensity: VisualDensity.compact,
-                            backgroundColor: taskColor.withOpacity(0.3),
-                            labelStyle: const TextStyle(fontSize: 11),
-                            padding: EdgeInsets.zero,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: task.completed
+                              ? Colors.green.withOpacity(0.3)
+                              : taskColor.withOpacity(0.5),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: Text(
+                            task.emoji ?? '\ud83d\udcdd',
+                            style: const TextStyle(fontSize: 28),
                           ),
-                        if (task.dueDate != null)
+                        ),
+                      ),
+                    ),
+                    title: AnimatedDefaultTextStyle(
+                      duration: const Duration(milliseconds: 500),
+                      style: TextStyle(
+                        decoration: task.completed
+                            ? TextDecoration.lineThrough
+                            : TextDecoration.none,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                        color: task.completed
+                            ? Colors.green.shade700
+                            : colorScheme.onSurface,
+                        decorationColor: Colors.green,
+                        decorationThickness: 2,
+                      ),
+                      child: Text(task.title),
+                    ),
+                    subtitle: Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 4,
+                        children: [
+                          if (task.category != null)
+                            Chip(
+                              label: Text(task.category!),
+                              avatar: const Icon(Icons.label, size: 14),
+                              visualDensity: VisualDensity.compact,
+                              backgroundColor: taskColor.withOpacity(0.5),
+                              labelStyle: const TextStyle(fontSize: 11),
+                              padding: EdgeInsets.zero,
+                            ),
+                          if (task.dueDate != null)
+                            Chip(
+                              label: Text(_formatDate(task.dueDate!)),
+                              avatar: Icon(
+                                Icons.calendar_today,
+                                size: 14,
+                                color: isOverdue ? Colors.red : null,
+                              ),
+                              visualDensity: VisualDensity.compact,
+                              backgroundColor: isOverdue
+                                  ? Colors.red.withOpacity(0.3)
+                                  : taskColor.withOpacity(0.5),
+                              labelStyle: TextStyle(
+                                fontSize: 11,
+                                color: isOverdue ? Colors.red : null,
+                                fontWeight: isOverdue ? FontWeight.bold : null,
+                              ),
+                              padding: EdgeInsets.zero,
+                            ),
                           Chip(
-                            label: Text(_formatDate(task.dueDate!)),
+                            label: Text(_getPriorityLabel(task.priority)),
                             avatar: Icon(
-                              Icons.calendar_today,
+                              Icons.flag,
                               size: 14,
-                              color: isOverdue ? Colors.red : null,
+                              color: _getPriorityColor(task.priority),
                             ),
                             visualDensity: VisualDensity.compact,
-                            backgroundColor: isOverdue
-                                ? Colors.red.withOpacity(0.2)
-                                : taskColor.withOpacity(0.3),
+                            backgroundColor: _getPriorityColor(
+                              task.priority,
+                            ).withOpacity(0.2),
                             labelStyle: TextStyle(
                               fontSize: 11,
-                              color: isOverdue ? Colors.red : null,
-                              fontWeight: isOverdue ? FontWeight.bold : null,
+                              color: _getPriorityColor(task.priority),
+                              fontWeight: FontWeight.bold,
                             ),
                             padding: EdgeInsets.zero,
                           ),
-                        Chip(
-                          label: Text(_getPriorityLabel(task.priority)),
-                          avatar: Icon(
-                            Icons.flag,
-                            size: 14,
-                            color: _getPriorityColor(task.priority),
-                          ),
-                          visualDensity: VisualDensity.compact,
-                          backgroundColor: _getPriorityColor(
-                            task.priority,
-                          ).withOpacity(0.2),
-                          labelStyle: TextStyle(
-                            fontSize: 11,
-                            color: _getPriorityColor(task.priority),
-                            fontWeight: FontWeight.bold,
-                          ),
-                          padding: EdgeInsets.zero,
-                        ),
-                      ],
-                    ),
-                  ),
-                  onTap: () async {
-                    await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => AddTaskScreen(task: task),
+                        ],
                       ),
-                    );
-                  },
+                    ),
+                    onTap: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AddTaskScreen(task: task),
+                        ),
+                      );
+                    },
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
         )

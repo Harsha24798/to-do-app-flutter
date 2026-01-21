@@ -28,6 +28,9 @@ class Task extends HiveObject {
   @HiveField(7)
   DateTime? reminderTime;
 
+  @HiveField(8)
+  String? emoji;
+
   Task({
     required this.id,
     required this.title,
@@ -37,6 +40,7 @@ class Task extends HiveObject {
     this.color,
     this.dueDate,
     this.reminderTime,
+    this.emoji,
   });
 
   // Copy with method for updates
@@ -49,6 +53,7 @@ class Task extends HiveObject {
     int? color,
     DateTime? dueDate,
     DateTime? reminderTime,
+    String? emoji,
   }) {
     return Task(
       id: id ?? this.id,
@@ -59,6 +64,7 @@ class Task extends HiveObject {
       color: color ?? this.color,
       dueDate: dueDate ?? this.dueDate,
       reminderTime: reminderTime ?? this.reminderTime,
+      emoji: emoji ?? this.emoji,
     );
   }
 
@@ -72,6 +78,7 @@ class Task extends HiveObject {
       'color': color,
       'dueDate': dueDate?.toIso8601String(),
       'reminderTime': reminderTime?.toIso8601String(),
+      'emoji': emoji,
     };
   }
 
@@ -87,6 +94,7 @@ class Task extends HiveObject {
       reminderTime: json['reminderTime'] != null
           ? DateTime.parse(json['reminderTime'])
           : null,
+      emoji: json['emoji'],
     );
   }
 }
