@@ -12,7 +12,7 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   final HiveService _hiveService = HiveService();
-  
+
   late bool _notificationsEnabled;
   late bool _darkMode;
   late int _defaultReminderMinutes;
@@ -24,16 +24,50 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _loadSettings() {
-    _notificationsEnabled = _hiveService.getSetting('notifications_enabled', defaultValue: true);
+    _notificationsEnabled = _hiveService.getSetting(
+      'notifications_enabled',
+      defaultValue: true,
+    );
     _darkMode = _hiveService.getSetting('dark_mode', defaultValue: false);
-    _defaultReminderMinutes = _hiveService.getSetting('default_reminder_minutes', defaultValue: 30);
+    _defaultReminderMinutes = _hiveService.getSetting(
+      'default_reminder_minutes',
+      defaultValue: 30,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings'),
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [colorScheme.primary, colorScheme.secondary],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.settings, size: 24),
+            ),
+            const SizedBox(width: 12),
+            const Text(
+              'Settings',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+            ),
+          ],
+        ),
+        elevation: 0,
       ),
       body: ListView(
         children: [
@@ -41,10 +75,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             padding: EdgeInsets.all(16.0),
             child: Text(
               'General Settings',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
 
@@ -74,10 +105,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             padding: EdgeInsets.all(16.0),
             child: Text(
               'Notification Settings',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
 
@@ -110,10 +138,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             padding: EdgeInsets.all(16.0),
             child: Text(
               'Data Management',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
 
@@ -149,10 +174,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             padding: EdgeInsets.all(16.0),
             child: Text(
               'Statistics',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
 
@@ -207,10 +229,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       title: Text(title),
       trailing: Text(
         value,
-        style: const TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-        ),
+        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
       ),
     );
   }

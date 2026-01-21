@@ -24,21 +24,31 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
 
   final List<Color> _colors = [
     Colors.red,
-    Colors.blue,
-    Colors.green,
-    Colors.orange,
-    Colors.purple,
     Colors.pink,
+    Colors.purple,
+    Colors.deepPurple,
+    Colors.indigo,
+    Colors.blue,
+    Colors.lightBlue,
+    Colors.cyan,
     Colors.teal,
+    Colors.green,
+    Colors.lightGreen,
+    Colors.lime,
+    Colors.yellow,
     Colors.amber,
+    Colors.orange,
+    Colors.deepOrange,
   ];
 
   @override
   void initState() {
     super.initState();
     _titleController = TextEditingController(text: widget.task?.title ?? '');
-    _categoryController = TextEditingController(text: widget.task?.category ?? '');
-    
+    _categoryController = TextEditingController(
+      text: widget.task?.category ?? '',
+    );
+
     if (widget.task != null) {
       _priority = widget.task!.priority;
       _dueDate = widget.task!.dueDate;
@@ -57,17 +67,51 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   @override
   Widget build(BuildContext context) {
     final isEditing = widget.task != null;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEditing ? 'Edit Task' : 'Add Task'),
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [colorScheme.primary, colorScheme.secondary],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(isEditing ? Icons.edit : Icons.add_task, size: 24),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              isEditing ? 'Edit Task' : 'Add Task',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+            ),
+          ],
+        ),
+        elevation: 0,
         actions: [
           if (isEditing)
-            IconButton(
-              icon: const Icon(Icons.delete),
-              onPressed: () {
-                _showDeleteConfirmation();
-              },
+            Container(
+              margin: const EdgeInsets.only(right: 8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.delete),
+                onPressed: () {
+                  _showDeleteConfirmation();
+                },
+              ),
             ),
         ],
       ),
@@ -206,7 +250,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
               children: _colors.map((color) {
                 final colorValue = color.value;
                 final isSelected = _selectedColor == colorValue;
-                
+
                 return GestureDetector(
                   onTap: () {
                     setState(() {
@@ -312,7 +356,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   void _saveTask() {
     if (_formKey.currentState!.validate()) {
       final taskProvider = context.read<TaskProvider>();
-      
+
       final task = Task(
         id: widget.task?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
         title: _titleController.text.trim(),
@@ -358,9 +402,9 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
               context.read<TaskProvider>().deleteTask(widget.task!.id);
               Navigator.pop(context); // Close dialog
               Navigator.pop(context); // Close screen
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Task deleted')),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('Task deleted')));
             },
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
